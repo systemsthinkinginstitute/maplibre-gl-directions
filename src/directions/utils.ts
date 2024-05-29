@@ -197,7 +197,15 @@ export function buildRoutelines(
   // do the following stuff for each route (there are multiple when `alternatives=true` request option is set)
   return routes.map((route, routeIndex) => {
     // a list of coordinates pairs (longitude-latitude) the route goes by
-    const coordinates = geometryDecoder(requestOptions, route.geometry);
+      // @ts-ignore
+    const coordinates: any [] = [];
+    for (const leg of route.legs) {
+      // @ts-ignore
+      for (const step of leg.steps) {
+        const coords = geometryDecoder(requestOptions, step.geometry);
+        coordinates.push(...coords);
+      }
+    }
 
     // get coordinates from the snappoint-features
     const snappointsCoordinates = snappoints.map((snappoint) => snappoint.geometry.coordinates);
