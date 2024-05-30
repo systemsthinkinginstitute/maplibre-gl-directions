@@ -102,8 +102,19 @@ export default class MapLibreGlDirections extends MapLibreGlDirectionsEvented {
       },
     });
 
+    const layers = this.map.getStyle().layers;
+    // Find the index of the first symbol layer in the map style
+    let firstSymbolId: any;
+    for (let i = 0; i < layers.length; i++) {
+      if (layers[i].type === 'symbol') {
+        firstSymbolId = layers[i].id;
+        break;
+      }
+    }
+    console.log("#### symbol id found", firstSymbolId);
     this.configuration.layers.forEach((layer) => {
-      this.map.addLayer(layer);
+      console.log("#### layer.id", layer.id);
+      this.map.addLayer(layer, firstSymbolId);
     });
   }
 

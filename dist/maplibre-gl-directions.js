@@ -90,13 +90,14 @@ const xe = {
   refreshOnMove: !1,
   bearings: !1
 }, L = {
-  snapline: "#34343f",
-  altRouteline: "#9e91be",
-  routelineFoot: "#3665ff",
-  routelineBike: "#63c4ff",
-  routeline: "#7b51f8",
-  congestionLow: "#42c74c",
-  congestionHigh: "#d72359",
+  snapline: "#3893FF",
+  //"#34343f",
+  altRouteline: "#F3F3F3",
+  routelineFoot: "#F3F3F3",
+  routelineBike: "#F3F3F3",
+  routeline: "#3893FF",
+  congestionLow: "#3893FF",
+  congestionHigh: "#FF4D4D",
   hoverpoint: "#30a856",
   snappoint: "#cb3373",
   snappointHighlight: "#e50d3f",
@@ -387,24 +388,24 @@ function de(t, i = 5) {
   const e = Math.pow(10, i);
   let n = 0, o = 0, s = 0;
   const r = [];
-  let a = 0, l = 0, c = null, g, p;
+  let a = 0, l = 0, c = null, d, p;
   for (; n < t.length; ) {
     c = null, a = 0, l = 0;
     do
       c = t.charCodeAt(n++) - 63, l |= (c & 31) << a, a += 5;
     while (c >= 32);
-    g = ce(l), a = l = 0;
+    d = ce(l), a = l = 0;
     do
       c = t.charCodeAt(n++) - 63, l |= (c & 31) << a, a += 5;
     while (c >= 32);
-    p = ce(l), o += g, s += p, r.push([s / e, o / e]);
+    p = ce(l), o += d, s += p, r.push([s / e, o / e]);
   }
   return r;
 }
 function ze(t, i) {
   return t.geometries === "geojson" ? i.coordinates : t.geometries === "polyline6" ? de(i, 6) : de(i, 5);
 }
-function qe(t, i, e) {
+function Fe(t, i, e) {
   var n, o, s, r;
   if ((n = t.annotations) != null && n.includes("congestion_numeric"))
     return ((o = i == null ? void 0 : i.congestion_numeric) == null ? void 0 : o[e]) ?? 0;
@@ -426,7 +427,7 @@ function qe(t, i, e) {
   else
     return 0;
 }
-function Ue(t, i, e) {
+function qe(t, i, e) {
   return !t.geometries || t.geometries === "polyline" ? Math.abs(i[0] - e[0]) <= 1e-5 && Math.abs(i[1] - e[1]) <= 1e-5 : i[0] === e[0] && i[1] === e[1];
 }
 function ge(t) {
@@ -525,45 +526,39 @@ function Me(t, i, e, n, o = !1) {
 }
 function Se(t, i, e, n) {
   return i.map((o, s) => {
-    const r = [];
-    for (const y of o.legs)
-      for (const d of y.steps) {
-        const b = ze(t, d.geometry);
-        r.push(...b);
-      }
-    const a = n.map((y) => y.geometry.coordinates);
+    const r = ze(t, o.geometry), a = n.map((y) => y.geometry.coordinates);
     let l = 0;
-    const c = a.map((y, d) => {
-      const b = r.slice(l).findIndex((w) => Ue(t, w, y)), E = d === a.length - 1;
-      if (b !== -1)
-        l += b;
+    const c = a.map((y, g) => {
+      const _ = r.slice(l).findIndex((w) => qe(t, w, y)), E = g === a.length - 1;
+      if (_ !== -1)
+        l += _;
       else if (E)
         return r.length - 1;
       return l;
     }).slice(1);
-    let g = 0;
-    const p = c.map((y) => r.slice(g, g = y + 1)), f = [];
-    return p.forEach((y, d) => {
-      const b = we();
+    let d = 0;
+    const p = c.map((y) => r.slice(d, d = y + 1)), f = [];
+    return p.forEach((y, g) => {
+      const _ = we();
       y.forEach((E, w) => {
         var v, R, C;
-        const _ = f[f.length - 1], m = qe(t, (v = o.legs[d]) == null ? void 0 : v.annotation, w);
-        if (d === ((R = _ == null ? void 0 : _.properties) == null ? void 0 : R.legIndex) && ((C = _.properties) == null ? void 0 : C.congestion) === m)
-          _.geometry.coordinates.push(E);
+        const b = f[f.length - 1], m = Fe(t, (v = o.legs[g]) == null ? void 0 : v.annotation, w);
+        if (g === ((R = b == null ? void 0 : b.properties) == null ? void 0 : R.legIndex) && ((C = b.properties) == null ? void 0 : C.congestion) === m)
+          b.geometry.coordinates.push(E);
         else {
-          const x = n[d].properties ?? {}, W = n[d + 1].properties ?? {}, T = {
+          const x = n[g].properties ?? {}, W = n[g + 1].properties ?? {}, T = {
             type: "Feature",
             geometry: {
               type: "LineString",
               coordinates: []
             },
             properties: {
-              id: b,
+              id: _,
               // used to highlight the whole leg when hovered, not a single segment
               routeIndex: s,
               // used to switch between alternative and selected routes
               route: s === e ? "SELECTED" : "ALT",
-              legIndex: d,
+              legIndex: g,
               // used across forEach iterations to check whether it's safe to continue a segment
               congestion: m,
               // the current segment's congestion level
@@ -573,8 +568,8 @@ function Se(t, i, e, n) {
               // ...of behavior via a subclass
             }
           };
-          _ && T.geometry.coordinates.push(
-            _.geometry.coordinates[_.geometry.coordinates.length - 1]
+          b && T.geometry.coordinates.push(
+            b.geometry.coordinates[b.geometry.coordinates.length - 1]
           ), T.geometry.coordinates.push(E), f.push(T);
         }
       });
@@ -676,8 +671,16 @@ class _t extends Ne {
         type: "FeatureCollection",
         features: []
       }
-    }), this.configuration.layers.forEach((e) => {
-      this.map.addLayer(e);
+    });
+    const e = this.map.getStyle().layers;
+    let n;
+    for (let o = 0; o < e.length; o++)
+      if (e[o].type === "symbol") {
+        n = e[o].id;
+        break;
+      }
+    console.log("#### symbol id found", n), this.configuration.layers.forEach((o) => {
+      console.log("#### layer.id", o.id), this.map.addLayer(o, n);
     });
   }
   async fetch({ method: e, url: n, payload: o }) {
@@ -706,12 +709,12 @@ class _t extends Ne {
       }, this.interactive = !1;
       let a;
       this.configuration.requestTimeout !== null && (a = setTimeout(() => {
-        var d;
-        return (d = this.abortController) == null ? void 0 : d.abort();
+        var g;
+        return (g = this.abortController) == null ? void 0 : g.abort();
       }, this.configuration.requestTimeout)), this.profiles.length || (this.profiles = [this.configuration.profile]);
       const l = [], c = [];
-      this.profiles.reduce((d, b, E) => {
-        const w = E === this.profiles.length - 1, _ = E > 0 ? this.profiles[E - 1] : void 0, m = b === _, v = w ? (
+      this.profiles.reduce((g, _, E) => {
+        const w = E === this.profiles.length - 1, b = E > 0 ? this.profiles[E - 1] : void 0, m = _ === b, v = w ? (
           /**
            * If it's the last supplied profile include all remaining waypoints
            */
@@ -720,51 +723,51 @@ class _t extends Ne {
           /**
            * If profile is same as previous one add a slice of one element only
            */
-          d + 1
+          g + 1
         ) : (
           /**
            * If profile is different slice corresponding pair of coordinates
            */
-          d + 2
+          g + 2
         );
-        return m ? c[c.length - 1].push(...this._waypoints.slice(d, v)) : (c.push(this._waypoints.slice(d, v)), l.push(b)), v;
+        return m ? c[c.length - 1].push(...this._waypoints.slice(g, v)) : (c.push(this._waypoints.slice(g, v)), l.push(_)), v;
       }, 0);
-      const g = l.map((d, b) => this.buildRequest(
-        { ...this.configuration, profile: d },
-        ge(c[b]),
-        this.configuration.bearings ? ue(c[b]) : void 0
+      const d = l.map((g, _) => this.buildRequest(
+        { ...this.configuration, profile: g },
+        ge(c[_]),
+        this.configuration.bearings ? ue(c[_]) : void 0
       ));
       let p;
       try {
         p = await Promise.all(
-          g.map(async (d) => {
-            let b;
+          d.map(async (g) => {
+            let _;
             try {
-              b = await this.fetch(d);
+              _ = await this.fetch(g);
             } finally {
-              this.fire(new ae("fetchroutesend", e, b));
+              this.fire(new ae("fetchroutesend", e, _));
             }
-            return b;
+            return _;
           })
         );
       } finally {
         ((s = this.abortController) == null ? void 0 : s.signal.reason) !== "DESTROY" && (this.interactive = n), this.abortController = void 0, clearTimeout(a);
       }
-      const f = p.flatMap((d, b) => {
-        const E = l[b], w = d.waypoints.map(
+      const f = p.flatMap((g, _) => {
+        const E = l[_], w = g.waypoints.map(
           (m, v) => this.buildPoint(m.location, "SNAPPOINT", {
             profile: E,
-            waypointProperties: c[b][v].properties ?? {}
+            waypointProperties: c[_][v].properties ?? {}
           })
-        ), _ = this.buildRoutelines(
+        ), b = this.buildRoutelines(
           this.configuration.requestOptions,
-          d.routes,
+          g.routes,
           this.selectedRouteIndex,
           w
         );
-        return { snappoints: w, routelines: _ };
-      }), y = p.flatMap((d) => d.routes);
-      this.snappoints = f.flatMap((d) => d.snappoints), this.routelines = f.flatMap((d) => d.routelines), y.length <= this.selectedRouteIndex && (this.selectedRouteIndex = 0);
+        return { snappoints: w, routelines: b };
+      }), y = p.flatMap((g) => g.routes);
+      this.snappoints = f.flatMap((g) => g.snappoints), this.routelines = f.flatMap((g) => g.routelines), y.length <= this.selectedRouteIndex && (this.selectedRouteIndex = 0);
     } else
       this.snappoints = [], this.routelines = [];
     this.draw(!1);
@@ -808,21 +811,21 @@ class _t extends Ne {
     })[0];
     if (this.deHighlight(), this.configuration.sensitiveWaypointLayers.includes((n == null ? void 0 : n.layer.id) ?? "")) {
       this.map.getCanvas().style.cursor = "pointer", this.interactive && this.map.dragPan.disable();
-      const l = this._waypoints.find((g) => {
+      const l = this._waypoints.find((d) => {
         var p, f;
-        return ((p = g.properties) == null ? void 0 : p.id) === ((f = n == null ? void 0 : n.properties) == null ? void 0 : f.id);
+        return ((p = d.properties) == null ? void 0 : p.id) === ((f = n == null ? void 0 : n.properties) == null ? void 0 : f.id);
       }), c = l && this.snappoints.find(
-        (g) => {
+        (d) => {
           var p, f, y;
-          return ((f = (p = g.properties) == null ? void 0 : p.waypointProperties) == null ? void 0 : f.id) === ((y = l.properties) == null ? void 0 : y.id);
+          return ((f = (p = d.properties) == null ? void 0 : p.waypointProperties) == null ? void 0 : f.id) === ((y = l.properties) == null ? void 0 : y.id);
         }
       );
       l && (this.highlightedWaypoints = [l]), c && (this.highlightedSnappoints = [c]), (o = this.highlightedWaypoints[0]) != null && o.properties && (this.highlightedWaypoints[0].properties.highlight = !0), (s = this.highlightedSnappoints[0]) != null && s.properties && (this.highlightedSnappoints[0].properties.highlight = !0), this.hoverpoint && (this.hoverpoint = void 0);
     } else if (this.configuration.sensitiveSnappointLayers.includes((n == null ? void 0 : n.layer.id) ?? "")) {
       this.map.getCanvas().style.cursor = "pointer";
       const l = this.snappoints.findIndex((c) => {
-        var g, p;
-        return ((g = c.properties) == null ? void 0 : g.id) === ((p = n == null ? void 0 : n.properties) == null ? void 0 : p.id);
+        var d, p;
+        return ((d = c.properties) == null ? void 0 : d.id) === ((p = n == null ? void 0 : n.properties) == null ? void 0 : p.id);
       });
       this.highlightedSnappoints = [this.snappoints[l]], this.highlightedWaypoints = [this._waypoints[l]], this.highlightedSnappoints[0].properties && (this.highlightedSnappoints[0].properties.highlight = !0), this.highlightedWaypoints[0].properties && (this.highlightedWaypoints[0].properties.highlight = !0), this.hoverpoint && (this.hoverpoint = void 0);
     } else
@@ -835,13 +838,13 @@ class _t extends Ne {
         }
       })), this.routelines.forEach((l) => {
         l.forEach((c) => {
-          var g, p;
-          c.properties && ((g = c.properties) == null ? void 0 : g.id) === ((p = n == null ? void 0 : n.properties) == null ? void 0 : p.id) && (c.properties.highlight = !0);
+          var d, p;
+          c.properties && ((d = c.properties) == null ? void 0 : d.id) === ((p = n == null ? void 0 : n.properties) == null ? void 0 : p.id) && (c.properties.highlight = !0);
         });
       })) : this.configuration.sensitiveAltRoutelineLayers.includes((n == null ? void 0 : n.layer.id) ?? "") ? (this.map.getCanvas().style.cursor = "pointer", this.routelines.forEach((l) => {
         l.forEach((c) => {
-          var g, p;
-          c.properties && ((g = c.properties) == null ? void 0 : g.id) === ((p = n == null ? void 0 : n.properties) == null ? void 0 : p.id) && (c.properties.highlight = !0);
+          var d, p;
+          c.properties && ((d = c.properties) == null ? void 0 : d.id) === ((p = n == null ? void 0 : n.properties) == null ? void 0 : p.id) && (c.properties.highlight = !0);
         });
       }), this.hoverpoint && (this.hoverpoint = void 0)) : (this.map.dragPan.enable(), this.map.getCanvas().style.cursor = "", this.hoverpoint = void 0);
     this.draw();
@@ -852,14 +855,14 @@ class _t extends Ne {
       return;
     const n = this.map.queryRenderedFeatures(e.point);
     if (n.length && n[0].source === this.configuration.sourceName) {
-      const g = n.filter((p) => this.configuration.sensitiveWaypointLayers.includes((p == null ? void 0 : p.layer.id) ?? "") || this.configuration.sensitiveSnappointLayers.includes((p == null ? void 0 : p.layer.id) ?? "") || this.configuration.sensitiveRoutelineLayers.includes((p == null ? void 0 : p.layer.id) ?? ""))[0];
-      if (this.dragDownPosition = e.point, this.currentMousePosition = e.point, this.configuration.sensitiveWaypointLayers.includes((g == null ? void 0 : g.layer.id) ?? ""))
+      const d = n.filter((p) => this.configuration.sensitiveWaypointLayers.includes((p == null ? void 0 : p.layer.id) ?? "") || this.configuration.sensitiveSnappointLayers.includes((p == null ? void 0 : p.layer.id) ?? "") || this.configuration.sensitiveRoutelineLayers.includes((p == null ? void 0 : p.layer.id) ?? ""))[0];
+      if (this.dragDownPosition = e.point, this.currentMousePosition = e.point, this.configuration.sensitiveWaypointLayers.includes((d == null ? void 0 : d.layer.id) ?? ""))
         this.waypointBeingDragged = this._waypoints.find((p) => {
           var f, y;
-          return ((f = p.properties) == null ? void 0 : f.id) === ((y = g == null ? void 0 : g.properties) == null ? void 0 : y.id);
+          return ((f = p.properties) == null ? void 0 : f.id) === ((y = d == null ? void 0 : d.properties) == null ? void 0 : y.id);
         }), this.waypointBeingDraggedInitialCoordinates = (o = this.waypointBeingDragged) == null ? void 0 : o.geometry.coordinates;
-      else if (this.configuration.sensitiveRoutelineLayers.includes((g == null ? void 0 : g.layer.id) ?? "")) {
-        if (this.departSnappointIndex = JSON.parse((s = g == null ? void 0 : g.properties) == null ? void 0 : s.legIndex), this.hoverpoint)
+      else if (this.configuration.sensitiveRoutelineLayers.includes((d == null ? void 0 : d.layer.id) ?? "")) {
+        if (this.departSnappointIndex = JSON.parse((s = d == null ? void 0 : d.properties) == null ? void 0 : s.legIndex), this.hoverpoint)
           if (this.configuration.refreshOnMove) {
             const p = this.departSnappointIndex !== void 0 ? this.departSnappointIndex + 1 : void 0;
             this._addWaypoint([e.lngLat.lng, e.lngLat.lat], p, e), this.waypointBeingDragged = p ? this._waypoints[p] : void 0, this.hoverpoint = void 0;
@@ -868,10 +871,10 @@ class _t extends Ne {
         else
           this.hoverpoint = this.buildPoint([e.lngLat.lng, e.lngLat.lat], "HOVERPOINT", {
             departSnappointProperties: {
-              ...JSON.parse(((r = g == null ? void 0 : g.properties) == null ? void 0 : r.departSnappointProperties) ?? "{}")
+              ...JSON.parse(((r = d == null ? void 0 : d.properties) == null ? void 0 : r.departSnappointProperties) ?? "{}")
             },
             arriveSnappointProperties: {
-              ...JSON.parse(((a = g == null ? void 0 : g.properties) == null ? void 0 : a.arriveSnappointProperties) ?? "{}")
+              ...JSON.parse(((a = d == null ? void 0 : d.properties) == null ? void 0 : a.arriveSnappointProperties) ?? "{}")
             }
           });
         (l = this.hoverpoint) != null && l.properties && (this.hoverpoint.properties.showSnaplines = !0), ~this.departSnappointIndex && ((c = this.snappoints[this.departSnappointIndex]) != null && c.properties) && (this.snappoints[this.departSnappointIndex].properties.highlight = !0, this.highlightedSnappoints.push(this.snappoints[this.departSnappointIndex]), this.snappoints[this.departSnappointIndex + 1].properties.highlight = !0, this.highlightedSnappoints.push(this.snappoints[this.departSnappointIndex + 1]));
@@ -1072,10 +1075,10 @@ class _t extends Ne {
     var s;
     (s = this.abortController) == null || s.abort(), this.profiles = n.slice(0, e.length - 1), this.profiles.length === 0 && this.profiles.push(this.configuration.profile), this._waypoints = this.profiles.flatMap((r, a) => {
       const l = a === this.profiles.length - 1, c = a > 0 ? this.profiles[a - 1] : void 0, p = r === c ? a + 1 : a, f = l ? e.length : a + 2;
-      return e.slice(p, f).map((y, d) => this.buildPoint(y, "WAYPOINT", {
+      return e.slice(p, f).map((y, g) => this.buildPoint(y, "WAYPOINT", {
         profile: r,
         ...this.configuration.bearings ? {
-          bearing: this.waypointsBearings[d]
+          bearing: this.waypointsBearings[g]
         } : void 0
       }));
     }), this.assignWaypointsCategories();
@@ -1130,7 +1133,7 @@ function Pe(t) {
 function fe() {
   return /* @__PURE__ */ Object.create(null);
 }
-function G(t) {
+function Y(t) {
   t.forEach(Pe);
 }
 function Re(t) {
@@ -1139,7 +1142,7 @@ function Re(t) {
 function Ie(t, i) {
   return t != t ? i == i : t !== i || t && typeof t == "object" || typeof t == "function";
 }
-function Ve(t) {
+function Ue(t) {
   return Object.keys(t).length === 0;
 }
 function D(t, i) {
@@ -1151,7 +1154,7 @@ function B(t, i, e) {
 function O(t) {
   t.parentNode && t.parentNode.removeChild(t);
 }
-function Ye(t, i) {
+function Ve(t, i) {
   for (let e = 0; e < t.length; e += 1)
     t[e] && t[e].d(i);
 }
@@ -1167,10 +1170,10 @@ function X(t) {
 function k() {
   return X(" ");
 }
-function Ge() {
+function Ye() {
   return X("");
 }
-function F(t, i, e, n) {
+function J(t, i, e, n) {
   return t.addEventListener(i, e, n), () => t.removeEventListener(i, e, n);
 }
 function h(t, i, e) {
@@ -1179,10 +1182,10 @@ function h(t, i, e) {
 function K(t) {
   return t === "" ? null : +t;
 }
-function Je(t) {
+function Ge(t) {
   return Array.from(t.childNodes);
 }
-function Fe(t, i) {
+function Je(t, i) {
   i = "" + i, t.data !== i && (t.data = /** @type {string} */
   i);
 }
@@ -1192,65 +1195,65 @@ function Q(t, i) {
 function A(t, i, e, n) {
   e == null ? t.style.removeProperty(i) : t.style.setProperty(i, e, n ? "important" : "");
 }
-let Y;
-function V(t) {
-  Y = t;
+let V;
+function U(t) {
+  V = t;
 }
 function Xe() {
-  if (!Y)
+  if (!V)
     throw new Error("Function called outside component initialization");
-  return Y;
+  return V;
 }
 function Ke(t) {
   Xe().$$.on_destroy.push(t);
 }
 const z = [], ee = [];
-let q = [];
+let F = [];
 const me = [], Qe = /* @__PURE__ */ Promise.resolve();
 let te = !1;
 function Ze() {
   te || (te = !0, Qe.then(Ce));
 }
 function ie(t) {
-  q.push(t);
+  F.push(t);
 }
 const Z = /* @__PURE__ */ new Set();
 let j = 0;
 function Ce() {
   if (j !== 0)
     return;
-  const t = Y;
+  const t = V;
   do {
     try {
       for (; j < z.length; ) {
         const i = z[j];
-        j++, V(i), et(i.$$);
+        j++, U(i), et(i.$$);
       }
     } catch (i) {
       throw z.length = 0, j = 0, i;
     }
-    for (V(null), z.length = 0, j = 0; ee.length; )
+    for (U(null), z.length = 0, j = 0; ee.length; )
       ee.pop()();
-    for (let i = 0; i < q.length; i += 1) {
-      const e = q[i];
+    for (let i = 0; i < F.length; i += 1) {
+      const e = F[i];
       Z.has(e) || (Z.add(e), e());
     }
-    q.length = 0;
+    F.length = 0;
   } while (z.length);
   for (; me.length; )
     me.pop()();
-  te = !1, Z.clear(), V(t);
+  te = !1, Z.clear(), U(t);
 }
 function et(t) {
   if (t.fragment !== null) {
-    t.update(), G(t.before_update);
+    t.update(), Y(t.before_update);
     const i = t.dirty;
     t.dirty = [-1], t.fragment && t.fragment.p(t.ctx, i), t.after_update.forEach(ie);
   }
 }
 function tt(t) {
   const i = [], e = [];
-  q.forEach((n) => t.indexOf(n) === -1 ? i.push(n) : e.push(n)), e.forEach((n) => n()), q = i;
+  F.forEach((n) => t.indexOf(n) === -1 ? i.push(n) : e.push(n)), e.forEach((n) => n()), F = i;
 }
 const it = /* @__PURE__ */ new Set();
 function nt(t, i) {
@@ -1263,19 +1266,19 @@ function ot(t, i, e) {
   const { fragment: n, after_update: o } = t.$$;
   n && n.m(i, e), ie(() => {
     const s = t.$$.on_mount.map(Pe).filter(Re);
-    t.$$.on_destroy ? t.$$.on_destroy.push(...s) : G(s), t.$$.on_mount = [];
+    t.$$.on_destroy ? t.$$.on_destroy.push(...s) : Y(s), t.$$.on_mount = [];
   }), o.forEach(ie);
 }
 function st(t, i) {
   const e = t.$$;
-  e.fragment !== null && (tt(e.after_update), G(e.on_destroy), e.fragment && e.fragment.d(i), e.on_destroy = e.fragment = null, e.ctx = []);
+  e.fragment !== null && (tt(e.after_update), Y(e.on_destroy), e.fragment && e.fragment.d(i), e.on_destroy = e.fragment = null, e.ctx = []);
 }
 function rt(t, i) {
   t.$$.dirty[0] === -1 && (z.push(t), Ze(), t.$$.dirty.fill(0)), t.$$.dirty[i / 31 | 0] |= 1 << i % 31;
 }
 function Te(t, i, e, n, o, s, r = null, a = [-1]) {
-  const l = Y;
-  V(t);
+  const l = V;
+  U(t);
   const c = t.$$ = {
     fragment: null,
     ctx: [],
@@ -1298,19 +1301,19 @@ function Te(t, i, e, n, o, s, r = null, a = [-1]) {
     root: i.target || l.$$.root
   };
   r && r(c.root);
-  let g = !1;
+  let d = !1;
   if (c.ctx = e ? e(t, i.props || {}, (p, f, ...y) => {
-    const d = y.length ? y[0] : f;
-    return c.ctx && o(c.ctx[p], c.ctx[p] = d) && (!c.skip_bound && c.bound[p] && c.bound[p](d), g && rt(t, p)), f;
-  }) : [], c.update(), g = !0, G(c.before_update), c.fragment = n ? n(c.ctx) : !1, i.target) {
+    const g = y.length ? y[0] : f;
+    return c.ctx && o(c.ctx[p], c.ctx[p] = g) && (!c.skip_bound && c.bound[p] && c.bound[p](g), d && rt(t, p)), f;
+  }) : [], c.update(), d = !0, Y(c.before_update), c.fragment = n ? n(c.ctx) : !1, i.target) {
     if (i.hydrate) {
-      const p = Je(i.target);
+      const p = Ge(i.target);
       c.fragment && c.fragment.l(p), p.forEach(O);
     } else
       c.fragment && c.fragment.c();
     i.intro && nt(t.$$.fragment), ot(t, i.target, i.anchor), Ce();
   }
-  V(l);
+  U(l);
 }
 class He {
   constructor() {
@@ -1355,44 +1358,44 @@ class He {
    * @returns {void}
    */
   $set(i) {
-    this.$$set && !Ve(i) && (this.$$.skip_bound = !0, this.$$set(i), this.$$.skip_bound = !1);
+    this.$$set && !Ue(i) && (this.$$.skip_bound = !0, this.$$set(i), this.$$.skip_bound = !1);
   }
 }
 const at = "4";
 typeof window < "u" && (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(at);
 function ve(t) {
-  let i, e, n, o, s, r, a, l, c, g, p, f, y, d, b, E;
+  let i, e, n, o, s, r, a, l, c, d, p, f, y, g, _, E;
   return {
     c() {
       i = P("svg"), e = P("circle"), o = P("path"), r = P("g"), a = P("path"), c = P("path"), p = P("path"), y = P("animateTransform"), h(e, "cx", "64.13"), h(e, "cy", "64.13"), h(e, "r", "27.63"), h(e, "fill", n = /*configuration*/
       t[0].fill), h(o, "d", "M64.13 18.5A45.63 45.63 0 1 1 18.5 64.13 45.63 45.63 0 0 1 64.13 18.5zm0 7.85a37.78 37.78 0 1 1-37.78 37.78 37.78 37.78 0 0 1 37.78-37.78z"), h(o, "fill-rule", "evenodd"), h(o, "fill", s = /*configuration*/
       t[0].fill), h(a, "d", "M95.25 17.4a56.26 56.26 0 0 0-76.8 13.23L12.1 26.2a64 64 0 0 1 87.6-15.17z"), h(a, "fill", l = /*configuration*/
-      t[0].fill), h(c, "d", "M95.25 17.4a56.26 56.26 0 0 0-76.8 13.23L12.1 26.2a64 64 0 0 1 87.6-15.17z"), h(c, "fill", g = /*configuration*/
+      t[0].fill), h(c, "d", "M95.25 17.4a56.26 56.26 0 0 0-76.8 13.23L12.1 26.2a64 64 0 0 1 87.6-15.17z"), h(c, "fill", d = /*configuration*/
       t[0].fill), h(c, "transform", "rotate(120 64 64)"), h(p, "d", "M95.25 17.4a56.26 56.26 0 0 0-76.8 13.23L12.1 26.2a64 64 0 0 1 87.6-15.17z"), h(p, "fill", f = /*configuration*/
-      t[0].fill), h(p, "transform", "rotate(240 64 64)"), h(y, "attributeName", "transform"), h(y, "type", "rotate"), h(y, "from", "0 64 64"), h(y, "to", "120 64 64"), h(y, "dur", "360ms"), h(y, "repeatCount", "indefinite"), h(i, "xmlns", "http://www.w3.org/2000/svg"), h(i, "width", d = /*configuration*/
-      t[0].size), h(i, "height", b = /*configuration*/
+      t[0].fill), h(p, "transform", "rotate(240 64 64)"), h(y, "attributeName", "transform"), h(y, "type", "rotate"), h(y, "from", "0 64 64"), h(y, "to", "120 64 64"), h(y, "dur", "360ms"), h(y, "repeatCount", "indefinite"), h(i, "xmlns", "http://www.w3.org/2000/svg"), h(i, "width", g = /*configuration*/
+      t[0].size), h(i, "height", _ = /*configuration*/
       t[0].size), h(i, "viewBox", "0 0 128 128"), h(i, "xml:space", "preserve"), h(i, "class", E = /*configuration*/
       t[0].class);
     },
-    m(w, _) {
-      B(w, i, _), D(i, e), D(i, o), D(i, r), D(r, a), D(r, c), D(r, p), D(r, y);
+    m(w, b) {
+      B(w, i, b), D(i, e), D(i, o), D(i, r), D(r, a), D(r, c), D(r, p), D(r, y);
     },
-    p(w, _) {
-      _ & /*configuration*/
+    p(w, b) {
+      b & /*configuration*/
       1 && n !== (n = /*configuration*/
-      w[0].fill) && h(e, "fill", n), _ & /*configuration*/
+      w[0].fill) && h(e, "fill", n), b & /*configuration*/
       1 && s !== (s = /*configuration*/
-      w[0].fill) && h(o, "fill", s), _ & /*configuration*/
+      w[0].fill) && h(o, "fill", s), b & /*configuration*/
       1 && l !== (l = /*configuration*/
-      w[0].fill) && h(a, "fill", l), _ & /*configuration*/
-      1 && g !== (g = /*configuration*/
-      w[0].fill) && h(c, "fill", g), _ & /*configuration*/
-      1 && f !== (f = /*configuration*/
-      w[0].fill) && h(p, "fill", f), _ & /*configuration*/
+      w[0].fill) && h(a, "fill", l), b & /*configuration*/
       1 && d !== (d = /*configuration*/
-      w[0].size) && h(i, "width", d), _ & /*configuration*/
-      1 && b !== (b = /*configuration*/
-      w[0].size) && h(i, "height", b), _ & /*configuration*/
+      w[0].fill) && h(c, "fill", d), b & /*configuration*/
+      1 && f !== (f = /*configuration*/
+      w[0].fill) && h(p, "fill", f), b & /*configuration*/
+      1 && g !== (g = /*configuration*/
+      w[0].size) && h(i, "width", g), b & /*configuration*/
+      1 && _ !== (_ = /*configuration*/
+      w[0].size) && h(i, "height", _), b & /*configuration*/
       1 && E !== (E = /*configuration*/
       w[0].class) && h(i, "class", E);
     },
@@ -1408,7 +1411,7 @@ function lt(t) {
   );
   return {
     c() {
-      e && e.c(), i = Ge();
+      e && e.c(), i = Ye();
     },
     m(n, o) {
       e && e.m(n, o), B(n, i, o);
@@ -1476,7 +1479,7 @@ function be(t, i, e) {
 }
 function dt(t) {
   let i, e, n, o, s, r, a, l, c;
-  function g() {
+  function d() {
     t[11].call(
       i,
       /*each_value*/
@@ -1498,7 +1501,7 @@ function dt(t) {
         i,
         /*waypointBearing*/
         t[16].degrees
-      ), B(p, r, f), B(p, a, f), l || (c = F(i, "input", g), l = !0);
+      ), B(p, r, f), B(p, a, f), l || (c = J(i, "input", d), l = !0);
     },
     p(p, f) {
       t = p, f & /*waypointsBearings*/
@@ -1537,7 +1540,7 @@ function gt(t) {
     p(s, r) {
       r & /*configuration*/
       1 && e !== (e = /*configuration*/
-      s[0].fixedDegrees + "") && Fe(n, e);
+      s[0].fixedDegrees + "") && Je(n, e);
     },
     d(s) {
       s && O(i);
@@ -1545,10 +1548,10 @@ function gt(t) {
   };
 }
 function _e(t) {
-  let i, e, n, o, s, r, a, l, c, g, p, f = (
+  let i, e, n, o, s, r, a, l, c, d, p, f = (
     /*i*/
     t[18]
-  ), y, d, b, E, w, _, m, v, R, C, x, W, T, U, ne;
+  ), y, g, _, E, w, b, m, v, R, C, x, W, T, q, ne;
   function Oe() {
     t[7].call(
       o,
@@ -1577,7 +1580,7 @@ function _e(t) {
   }
   function Be() {
     t[10].call(
-      d,
+      g,
       /*each_value*/
       t[17],
       /*i*/
@@ -1590,12 +1593,12 @@ function _e(t) {
       H[0].fixedDegrees ? gt : dt
     );
   }
-  let J = re(t), I = J(t);
+  let G = re(t), I = G(t);
   return {
     c() {
       i = S("div"), e = S("span"), e.textContent = `${/*i*/
-      t[18] + 1}.`, n = k(), o = S("input"), s = k(), r = S("div"), a = P("svg"), l = P("circle"), p = P("circle"), y = k(), d = S("input"), m = k(), v = S("span"), v.textContent = "°", R = k(), C = S("span"), C.textContent = "±", x = k(), I.c(), W = k(), h(e, "class", "maplibre-gl-directions-bearings-control__number text-slate-800"), h(o, "type", "checkbox"), h(o, "class", "maplibre-gl-directions-bearings-control__checkbox"), h(l, "r", "5"), h(l, "cx", "10"), h(l, "cy", "10"), h(l, "fill", "transparent"), h(l, "stroke", "rgba(109, 38, 215, 0.65)"), h(l, "stroke-width", "10"), h(l, "stroke-dasharray", c = /*waypointBearing*/
-      t[16].degrees / 3.6 * 31.42 / 100 + " 31.42"), h(l, "transform", g = "rotate(" + (-90 - /*waypointBearing*/
+      t[18] + 1}.`, n = k(), o = S("input"), s = k(), r = S("div"), a = P("svg"), l = P("circle"), p = P("circle"), y = k(), g = S("input"), m = k(), v = S("span"), v.textContent = "°", R = k(), C = S("span"), C.textContent = "±", x = k(), I.c(), W = k(), h(e, "class", "maplibre-gl-directions-bearings-control__number text-slate-800"), h(o, "type", "checkbox"), h(o, "class", "maplibre-gl-directions-bearings-control__checkbox"), h(l, "r", "5"), h(l, "cx", "10"), h(l, "cy", "10"), h(l, "fill", "transparent"), h(l, "stroke", "rgba(109, 38, 215, 0.65)"), h(l, "stroke-width", "10"), h(l, "stroke-dasharray", c = /*waypointBearing*/
+      t[16].degrees / 3.6 * 31.42 / 100 + " 31.42"), h(l, "transform", d = "rotate(" + (-90 - /*waypointBearing*/
       t[16].degrees / 2 + /*waypointBearing*/
       t[16].angle - /*angleAdjustment*/
       t[3]) + ")"), A(l, "transform-origin", "10px 10px"), h(p, "r", "6"), h(p, "cx", "10"), h(p, "cy", "10"), h(p, "fill", "rgb(109, 38, 215)"), h(a, "height", "20"), h(a, "width", "20"), h(a, "viewBox", "0 0 20 20"), h(a, "class", "maplibre-gl-directions-bearings-control__waypoint-image"), A(
@@ -1613,25 +1616,25 @@ function _e(t) {
         "opacity",
         /*waypointBearing*/
         t[16].enabled ? 1 : 0.25
-      ), h(r, "role", "spinbutton"), h(r, "tabindex", "0"), h(d, "type", "number"), d.disabled = b = !/*waypointBearing*/
-      t[16].enabled, h(d, "min", E = /*configuration*/
-      t[0].angleMin), h(d, "max", w = /*configuration*/
-      t[0].angleMax), h(d, "step", _ = /*configuration*/
-      t[0].angleStep), h(d, "class", "maplibre-gl-directions-bearings-control__input"), h(v, "class", "maplibre-gl-directions-bearings-control__text"), h(C, "class", "maplibre-gl-directions-bearings-control__text"), h(i, "class", T = "maplibre-gl-directions-bearings-control__list-item " + /*waypointBearing*/
+      ), h(r, "role", "spinbutton"), h(r, "tabindex", "0"), h(g, "type", "number"), g.disabled = _ = !/*waypointBearing*/
+      t[16].enabled, h(g, "min", E = /*configuration*/
+      t[0].angleMin), h(g, "max", w = /*configuration*/
+      t[0].angleMax), h(g, "step", b = /*configuration*/
+      t[0].angleStep), h(g, "class", "maplibre-gl-directions-bearings-control__input"), h(v, "class", "maplibre-gl-directions-bearings-control__text"), h(C, "class", "maplibre-gl-directions-bearings-control__text"), h(i, "class", T = "maplibre-gl-directions-bearings-control__list-item " + /*waypointBearing*/
       (t[16].enabled ? "maplibre-gl-directions-bearings-control__list-item--enabled" : "maplibre-gl-directions-bearings-control__list-item--disabled") + " flex items-center gap-2 text-slate-800" + /*waypointBearing*/
       (t[16].enabled ? "" : "/50"));
     },
     m(H, M) {
       B(H, i, M), D(i, e), D(i, n), D(i, o), o.checked = /*waypointBearing*/
-      t[16].enabled, D(i, s), D(i, r), D(r, a), D(a, l), D(a, p), oe(), D(i, y), D(i, d), Q(
-        d,
+      t[16].enabled, D(i, s), D(i, r), D(r, a), D(a, l), D(a, p), oe(), D(i, y), D(i, g), Q(
+        g,
         /*waypointBearing*/
         t[16].angle
-      ), D(i, m), D(i, v), D(i, R), D(i, C), D(i, x), I.m(i, null), D(i, W), U || (ne = [
-        F(o, "change", Oe),
-        F(r, "mousedown", ke),
-        F(d, "input", Be)
-      ], U = !0);
+      ), D(i, m), D(i, v), D(i, R), D(i, C), D(i, x), I.m(i, null), D(i, W), q || (ne = [
+        J(o, "change", Oe),
+        J(r, "mousedown", ke),
+        J(g, "input", Be)
+      ], q = !0);
     },
     p(H, M) {
       t = H, M & /*waypointsBearings*/
@@ -1639,10 +1642,10 @@ function _e(t) {
       t[16].enabled), M & /*waypointsBearings*/
       2 && c !== (c = /*waypointBearing*/
       t[16].degrees / 3.6 * 31.42 / 100 + " 31.42") && h(l, "stroke-dasharray", c), M & /*waypointsBearings, angleAdjustment*/
-      10 && g !== (g = "rotate(" + (-90 - /*waypointBearing*/
+      10 && d !== (d = "rotate(" + (-90 - /*waypointBearing*/
       t[16].degrees / 2 + /*waypointBearing*/
       t[16].angle - /*angleAdjustment*/
-      t[3]) + ")") && h(l, "transform", g), M & /*configuration*/
+      t[3]) + ")") && h(l, "transform", d), M & /*configuration*/
       1 && A(
         a,
         "width",
@@ -1663,26 +1666,26 @@ function _e(t) {
       ), f !== /*i*/
       t[18] && (se(), f = /*i*/
       t[18], oe()), M & /*waypointsBearings*/
-      2 && b !== (b = !/*waypointBearing*/
-      t[16].enabled) && (d.disabled = b), M & /*configuration*/
+      2 && _ !== (_ = !/*waypointBearing*/
+      t[16].enabled) && (g.disabled = _), M & /*configuration*/
       1 && E !== (E = /*configuration*/
-      t[0].angleMin) && h(d, "min", E), M & /*configuration*/
+      t[0].angleMin) && h(g, "min", E), M & /*configuration*/
       1 && w !== (w = /*configuration*/
-      t[0].angleMax) && h(d, "max", w), M & /*configuration*/
-      1 && _ !== (_ = /*configuration*/
-      t[0].angleStep) && h(d, "step", _), M & /*waypointsBearings*/
-      2 && K(d.value) !== /*waypointBearing*/
+      t[0].angleMax) && h(g, "max", w), M & /*configuration*/
+      1 && b !== (b = /*configuration*/
+      t[0].angleStep) && h(g, "step", b), M & /*waypointsBearings*/
+      2 && K(g.value) !== /*waypointBearing*/
       t[16].angle && Q(
-        d,
+        g,
         /*waypointBearing*/
         t[16].angle
-      ), J === (J = re(t)) && I ? I.p(t, M) : (I.d(1), I = J(t), I && (I.c(), I.m(i, W))), M & /*waypointsBearings*/
+      ), G === (G = re(t)) && I ? I.p(t, M) : (I.d(1), I = G(t), I && (I.c(), I.m(i, W))), M & /*waypointsBearings*/
       2 && T !== (T = "maplibre-gl-directions-bearings-control__list-item " + /*waypointBearing*/
       (t[16].enabled ? "maplibre-gl-directions-bearings-control__list-item--enabled" : "maplibre-gl-directions-bearings-control__list-item--disabled") + " flex items-center gap-2 text-slate-800" + /*waypointBearing*/
       (t[16].enabled ? "" : "/50")) && h(i, "class", T);
     },
     d(H) {
-      H && O(i), se(), I.d(), U = !1, G(ne);
+      H && O(i), se(), I.d(), q = !1, Y(ne);
     }
   };
 }
@@ -1729,7 +1732,7 @@ function ut(t) {
     i: N,
     o: N,
     d(r) {
-      r && O(i), Ye(s, r);
+      r && O(i), Ve(s, r);
     }
   };
 }
@@ -1749,7 +1752,7 @@ function ft(t, i, e) {
   let a;
   const l = [];
   let c = -1;
-  function g(m, v) {
+  function d(m, v) {
     var R;
     (R = s[v]) != null && R.enabled && (c = v, document.addEventListener("mouseup", p), document.addEventListener("mousemove", f));
   }
@@ -1759,8 +1762,8 @@ function ft(t, i, e) {
   function f(m) {
     const v = l[c];
     if (v) {
-      const R = v.getBoundingClientRect().x + o.imageSize / 2, C = v.getBoundingClientRect().y + o.imageSize / 2, x = m.pageX, W = m.pageY, U = Math.atan2(x - R, W - C) * (180 / Math.PI) * -1 + 90;
-      e(1, s[c].angle = 90 + U + y | 0, s);
+      const R = v.getBoundingClientRect().x + o.imageSize / 2, C = v.getBoundingClientRect().y + o.imageSize / 2, x = m.pageX, W = m.pageY, q = Math.atan2(x - R, W - C) * (180 / Math.PI) * -1 + 90;
+      e(1, s[c].angle = 90 + q + y | 0, s);
     }
   }
   Ke(() => {
@@ -1768,19 +1771,19 @@ function ft(t, i, e) {
   });
   let y = 0;
   o.respectMapBearing && n.map.on("rotate", () => e(3, y = n.map.getBearing()));
-  function d(m, v) {
+  function g(m, v) {
     m[v].enabled = this.checked, e(1, s);
   }
-  function b(m, v) {
+  function _(m, v) {
     ee[m ? "unshift" : "push"](() => {
       l[v] = m, e(2, l);
     });
   }
-  const E = (m, v) => g(v, m);
+  const E = (m, v) => d(v, m);
   function w(m, v) {
     m[v].angle = K(this.value), e(1, s);
   }
-  function _(m, v) {
+  function b(m, v) {
     m[v].degrees = K(this.value), e(1, s);
   }
   return t.$$set = (m) => {
@@ -1802,14 +1805,14 @@ function ft(t, i, e) {
     s,
     l,
     y,
-    g,
+    d,
     n,
     a,
-    d,
-    b,
+    g,
+    _,
     E,
     w,
-    _
+    b
   ];
 }
 let mt = class extends He {
