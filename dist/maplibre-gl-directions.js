@@ -531,7 +531,6 @@ function Se(t, i, e, n) {
         const b = ze(t, d.geometry);
         r.push(...b);
       }
-    console.log("#### coordinates", r);
     const a = n.map((y) => y.geometry.coordinates);
     let l = 0;
     const c = a.map((y, d) => {
