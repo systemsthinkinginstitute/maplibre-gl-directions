@@ -6,7 +6,9 @@ export declare const colors: {
     routelineBike: string;
     routeline: string;
     congestionLow: string;
+    congestionMedium: string;
     congestionHigh: string;
+    congestionExtreme: string;
     hoverpoint: string;
     snappoint: string;
     snappointHighlight: string;

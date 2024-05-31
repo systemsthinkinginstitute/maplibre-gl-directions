@@ -89,15 +89,20 @@ const xe = {
   dragThreshold: 10,
   refreshOnMove: !1,
   bearings: !1
-}, L = {
+}, E = {
   snapline: "#3893FF",
   //"#34343f",
   altRouteline: "#F3F3F3",
   routelineFoot: "#F3F3F3",
   routelineBike: "#F3F3F3",
   routeline: "#3893FF",
-  congestionLow: "#3893FF",
-  congestionHigh: "#FF4D4D",
+  // congestionLow: "#3893FF",
+  // congestionMedium: "#FF9500",
+  // congestionHigh: "#FF4D4D",
+  congestionLow: "#cccc00",
+  congestionMedium: "#ff8800",
+  congestionHigh: "#ff4400",
+  congestionExtreme: "#882200",
   hoverpoint: "#30a856",
   snappoint: "#cb3373",
   snappointHighlight: "#e50d3f",
@@ -110,32 +115,46 @@ const xe = {
 }, le = [
   "case",
   ["==", ["get", "profile", ["get", "arriveSnappointProperties"]], "foot"],
-  L.routelineFoot,
+  E.routelineFoot,
   ["==", ["get", "profile", ["get", "arriveSnappointProperties"]], "bike"],
-  L.routelineBike,
+  E.routelineBike,
   [
     "interpolate-hcl",
     ["linear"],
     ["get", "congestion"],
     0,
-    L.routeline,
-    1,
-    L.congestionLow,
+    E.routeline,
+    19,
+    E.routeline,
+    20,
+    E.congestionLow,
+    39,
+    E.congestionLow,
+    40,
+    E.congestionMedium,
+    59,
+    E.congestionMedium,
+    60,
+    E.congestionHigh,
+    79,
+    E.congestionHigh,
+    80,
+    E.congestionExtreme,
     100,
-    L.congestionHigh
+    E.congestionExtreme
   ]
 ], he = [
   "case",
   ["==", ["get", "profile"], "foot"],
-  ["case", ["boolean", ["get", "highlight"], !1], L.waypointFootHighlight, L.waypointFoot],
+  ["case", ["boolean", ["get", "highlight"], !1], E.waypointFootHighlight, E.waypointFoot],
   ["==", ["get", "profile"], "bike"],
-  ["case", ["boolean", ["get", "highlight"], !1], L.waypointBikeHighlight, L.waypointBike],
-  ["case", ["boolean", ["get", "highlight"], !1], L.waypointHighlight, L.waypoint]
+  ["case", ["boolean", ["get", "highlight"], !1], E.waypointBikeHighlight, E.waypointBike],
+  ["case", ["boolean", ["get", "highlight"], !1], E.waypointHighlight, E.waypoint]
 ], pe = [
   "case",
   ["boolean", ["get", "highlight"], !1],
-  L.snappointHighlight,
-  L.snappoint
+  E.snappointHighlight,
+  E.snappoint
 ];
 function $e(t = 1, i = 1, e = "maplibre-gl-directions") {
   const n = [
@@ -242,7 +261,7 @@ function $e(t = 1, i = 1, e = "maplibre-gl-directions") {
       },
       paint: {
         "line-dasharray": [3, 3],
-        "line-color": L.snapline,
+        "line-color": E.snapline,
         "line-opacity": 0.65,
         "line-width": 3
       },
@@ -257,7 +276,7 @@ function $e(t = 1, i = 1, e = "maplibre-gl-directions") {
         "line-join": "round"
       },
       paint: {
-        "line-color": L.altRouteline,
+        "line-color": E.altRouteline,
         "line-opacity": 0.55,
         "line-width": r
       },
@@ -272,7 +291,7 @@ function $e(t = 1, i = 1, e = "maplibre-gl-directions") {
         "line-join": "round"
       },
       paint: {
-        "line-color": L.altRouteline,
+        "line-color": E.altRouteline,
         "line-opacity": 0.85,
         "line-width": s
       },
@@ -314,7 +333,7 @@ function $e(t = 1, i = 1, e = "maplibre-gl-directions") {
       source: e,
       paint: {
         "circle-radius": n,
-        "circle-color": L.hoverpoint,
+        "circle-color": E.hoverpoint,
         "circle-opacity": 0.65
       },
       filter: ["==", ["get", "type"], "HOVERPOINT"]
@@ -326,7 +345,7 @@ function $e(t = 1, i = 1, e = "maplibre-gl-directions") {
       paint: {
         // same as snappoint, but always hig(since it's always highlighted while present on the map)
         "circle-radius": o,
-        "circle-color": L.hoverpoint
+        "circle-color": E.hoverpoint
       },
       filter: ["==", ["get", "type"], "HOVERPOINT"]
     },
@@ -405,7 +424,7 @@ function de(t, i = 5) {
 function ze(t, i) {
   return t.geometries === "geojson" ? i.coordinates : t.geometries === "polyline6" ? de(i, 6) : de(i, 5);
 }
-function Fe(t, i, e) {
+function qe(t, i, e) {
   var n, o, s, r;
   if ((n = t.annotations) != null && n.includes("congestion_numeric"))
     return ((o = i == null ? void 0 : i.congestion_numeric) == null ? void 0 : o[e]) ?? 0;
@@ -427,7 +446,7 @@ function Fe(t, i, e) {
   else
     return 0;
 }
-function qe(t, i, e) {
+function Fe(t, i, e) {
   return !t.geometries || t.geometries === "polyline" ? Math.abs(i[0] - e[0]) <= 1e-5 && Math.abs(i[1] - e[1]) <= 1e-5 : i[0] === e[0] && i[1] === e[1];
 }
 function ge(t) {
@@ -529,10 +548,10 @@ function Se(t, i, e, n) {
     const r = ze(t, o.geometry), a = n.map((y) => y.geometry.coordinates);
     let l = 0;
     const c = a.map((y, g) => {
-      const _ = r.slice(l).findIndex((w) => qe(t, w, y)), E = g === a.length - 1;
+      const _ = r.slice(l).findIndex((w) => Fe(t, w, y)), L = g === a.length - 1;
       if (_ !== -1)
         l += _;
-      else if (E)
+      else if (L)
         return r.length - 1;
       return l;
     }).slice(1);
@@ -540,11 +559,11 @@ function Se(t, i, e, n) {
     const p = c.map((y) => r.slice(d, d = y + 1)), f = [];
     return p.forEach((y, g) => {
       const _ = we();
-      y.forEach((E, w) => {
+      y.forEach((L, w) => {
         var v, R, C;
-        const b = f[f.length - 1], m = Fe(t, (v = o.legs[g]) == null ? void 0 : v.annotation, w);
+        const b = f[f.length - 1], m = qe(t, (v = o.legs[g]) == null ? void 0 : v.annotation, w);
         if (g === ((R = b == null ? void 0 : b.properties) == null ? void 0 : R.legIndex) && ((C = b.properties) == null ? void 0 : C.congestion) === m)
-          b.geometry.coordinates.push(E);
+          b.geometry.coordinates.push(L);
         else {
           const x = n[g].properties ?? {}, W = n[g + 1].properties ?? {}, T = {
             type: "Feature",
@@ -570,7 +589,7 @@ function Se(t, i, e, n) {
           };
           b && T.geometry.coordinates.push(
             b.geometry.coordinates[b.geometry.coordinates.length - 1]
-          ), T.geometry.coordinates.push(E), f.push(T);
+          ), T.geometry.coordinates.push(L), f.push(T);
         }
       });
     }), f;
@@ -713,8 +732,8 @@ class _t extends Ne {
         return (g = this.abortController) == null ? void 0 : g.abort();
       }, this.configuration.requestTimeout)), this.profiles.length || (this.profiles = [this.configuration.profile]);
       const l = [], c = [];
-      this.profiles.reduce((g, _, E) => {
-        const w = E === this.profiles.length - 1, b = E > 0 ? this.profiles[E - 1] : void 0, m = _ === b, v = w ? (
+      this.profiles.reduce((g, _, L) => {
+        const w = L === this.profiles.length - 1, b = L > 0 ? this.profiles[L - 1] : void 0, m = _ === b, v = w ? (
           /**
            * If it's the last supplied profile include all remaining waypoints
            */
@@ -754,9 +773,9 @@ class _t extends Ne {
         ((s = this.abortController) == null ? void 0 : s.signal.reason) !== "DESTROY" && (this.interactive = n), this.abortController = void 0, clearTimeout(a);
       }
       const f = p.flatMap((g, _) => {
-        const E = l[_], w = g.waypoints.map(
+        const L = l[_], w = g.waypoints.map(
           (m, v) => this.buildPoint(m.location, "SNAPPOINT", {
-            profile: E,
+            profile: L,
             waypointProperties: c[_][v].properties ?? {}
           })
         ), b = this.buildRoutelines(
@@ -1208,14 +1227,14 @@ function Ke(t) {
   Xe().$$.on_destroy.push(t);
 }
 const z = [], ee = [];
-let F = [];
+let q = [];
 const me = [], Qe = /* @__PURE__ */ Promise.resolve();
 let te = !1;
 function Ze() {
   te || (te = !0, Qe.then(Ce));
 }
 function ie(t) {
-  F.push(t);
+  q.push(t);
 }
 const Z = /* @__PURE__ */ new Set();
 let j = 0;
@@ -1234,11 +1253,11 @@ function Ce() {
     }
     for (U(null), z.length = 0, j = 0; ee.length; )
       ee.pop()();
-    for (let i = 0; i < F.length; i += 1) {
-      const e = F[i];
+    for (let i = 0; i < q.length; i += 1) {
+      const e = q[i];
       Z.has(e) || (Z.add(e), e());
     }
-    F.length = 0;
+    q.length = 0;
   } while (z.length);
   for (; me.length; )
     me.pop()();
@@ -1253,7 +1272,7 @@ function et(t) {
 }
 function tt(t) {
   const i = [], e = [];
-  F.forEach((n) => t.indexOf(n) === -1 ? i.push(n) : e.push(n)), e.forEach((n) => n()), F = i;
+  q.forEach((n) => t.indexOf(n) === -1 ? i.push(n) : e.push(n)), e.forEach((n) => n()), q = i;
 }
 const it = /* @__PURE__ */ new Set();
 function nt(t, i) {
@@ -1364,7 +1383,7 @@ class He {
 const at = "4";
 typeof window < "u" && (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(at);
 function ve(t) {
-  let i, e, n, o, s, r, a, l, c, d, p, f, y, g, _, E;
+  let i, e, n, o, s, r, a, l, c, d, p, f, y, g, _, L;
   return {
     c() {
       i = P("svg"), e = P("circle"), o = P("path"), r = P("g"), a = P("path"), c = P("path"), p = P("path"), y = P("animateTransform"), h(e, "cx", "64.13"), h(e, "cy", "64.13"), h(e, "r", "27.63"), h(e, "fill", n = /*configuration*/
@@ -1374,7 +1393,7 @@ function ve(t) {
       t[0].fill), h(c, "transform", "rotate(120 64 64)"), h(p, "d", "M95.25 17.4a56.26 56.26 0 0 0-76.8 13.23L12.1 26.2a64 64 0 0 1 87.6-15.17z"), h(p, "fill", f = /*configuration*/
       t[0].fill), h(p, "transform", "rotate(240 64 64)"), h(y, "attributeName", "transform"), h(y, "type", "rotate"), h(y, "from", "0 64 64"), h(y, "to", "120 64 64"), h(y, "dur", "360ms"), h(y, "repeatCount", "indefinite"), h(i, "xmlns", "http://www.w3.org/2000/svg"), h(i, "width", g = /*configuration*/
       t[0].size), h(i, "height", _ = /*configuration*/
-      t[0].size), h(i, "viewBox", "0 0 128 128"), h(i, "xml:space", "preserve"), h(i, "class", E = /*configuration*/
+      t[0].size), h(i, "viewBox", "0 0 128 128"), h(i, "xml:space", "preserve"), h(i, "class", L = /*configuration*/
       t[0].class);
     },
     m(w, b) {
@@ -1396,8 +1415,8 @@ function ve(t) {
       w[0].size) && h(i, "width", g), b & /*configuration*/
       1 && _ !== (_ = /*configuration*/
       w[0].size) && h(i, "height", _), b & /*configuration*/
-      1 && E !== (E = /*configuration*/
-      w[0].class) && h(i, "class", E);
+      1 && L !== (L = /*configuration*/
+      w[0].class) && h(i, "class", L);
     },
     d(w) {
       w && O(i);
@@ -1551,7 +1570,7 @@ function _e(t) {
   let i, e, n, o, s, r, a, l, c, d, p, f = (
     /*i*/
     t[18]
-  ), y, g, _, E, w, b, m, v, R, C, x, W, T, q, ne;
+  ), y, g, _, L, w, b, m, v, R, C, x, W, T, F, ne;
   function Oe() {
     t[7].call(
       o,
@@ -1617,7 +1636,7 @@ function _e(t) {
         /*waypointBearing*/
         t[16].enabled ? 1 : 0.25
       ), h(r, "role", "spinbutton"), h(r, "tabindex", "0"), h(g, "type", "number"), g.disabled = _ = !/*waypointBearing*/
-      t[16].enabled, h(g, "min", E = /*configuration*/
+      t[16].enabled, h(g, "min", L = /*configuration*/
       t[0].angleMin), h(g, "max", w = /*configuration*/
       t[0].angleMax), h(g, "step", b = /*configuration*/
       t[0].angleStep), h(g, "class", "maplibre-gl-directions-bearings-control__input"), h(v, "class", "maplibre-gl-directions-bearings-control__text"), h(C, "class", "maplibre-gl-directions-bearings-control__text"), h(i, "class", T = "maplibre-gl-directions-bearings-control__list-item " + /*waypointBearing*/
@@ -1630,11 +1649,11 @@ function _e(t) {
         g,
         /*waypointBearing*/
         t[16].angle
-      ), D(i, m), D(i, v), D(i, R), D(i, C), D(i, x), I.m(i, null), D(i, W), q || (ne = [
+      ), D(i, m), D(i, v), D(i, R), D(i, C), D(i, x), I.m(i, null), D(i, W), F || (ne = [
         J(o, "change", Oe),
         J(r, "mousedown", ke),
         J(g, "input", Be)
-      ], q = !0);
+      ], F = !0);
     },
     p(H, M) {
       t = H, M & /*waypointsBearings*/
@@ -1668,8 +1687,8 @@ function _e(t) {
       t[18], oe()), M & /*waypointsBearings*/
       2 && _ !== (_ = !/*waypointBearing*/
       t[16].enabled) && (g.disabled = _), M & /*configuration*/
-      1 && E !== (E = /*configuration*/
-      t[0].angleMin) && h(g, "min", E), M & /*configuration*/
+      1 && L !== (L = /*configuration*/
+      t[0].angleMin) && h(g, "min", L), M & /*configuration*/
       1 && w !== (w = /*configuration*/
       t[0].angleMax) && h(g, "max", w), M & /*configuration*/
       1 && b !== (b = /*configuration*/
@@ -1685,7 +1704,7 @@ function _e(t) {
       (t[16].enabled ? "" : "/50")) && h(i, "class", T);
     },
     d(H) {
-      H && O(i), se(), I.d(), q = !1, Y(ne);
+      H && O(i), se(), I.d(), F = !1, Y(ne);
     }
   };
 }
@@ -1762,8 +1781,8 @@ function ft(t, i, e) {
   function f(m) {
     const v = l[c];
     if (v) {
-      const R = v.getBoundingClientRect().x + o.imageSize / 2, C = v.getBoundingClientRect().y + o.imageSize / 2, x = m.pageX, W = m.pageY, q = Math.atan2(x - R, W - C) * (180 / Math.PI) * -1 + 90;
-      e(1, s[c].angle = 90 + q + y | 0, s);
+      const R = v.getBoundingClientRect().x + o.imageSize / 2, C = v.getBoundingClientRect().y + o.imageSize / 2, x = m.pageX, W = m.pageY, F = Math.atan2(x - R, W - C) * (180 / Math.PI) * -1 + 90;
+      e(1, s[c].angle = 90 + F + y | 0, s);
     }
   }
   Ke(() => {
@@ -1779,7 +1798,7 @@ function ft(t, i, e) {
       l[v] = m, e(2, l);
     });
   }
-  const E = (m, v) => d(v, m);
+  const L = (m, v) => d(v, m);
   function w(m, v) {
     m[v].angle = K(this.value), e(1, s);
   }
@@ -1810,7 +1829,7 @@ function ft(t, i, e) {
     a,
     g,
     _,
-    E,
+    L,
     w,
     b
   ];
